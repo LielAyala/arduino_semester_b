@@ -24,3 +24,25 @@ int recordIndex = 0; // אינדקס למעקב אחר מיקום במערך ה�
 // משתנה גלובלי לשמירת מצב הפעלה
 bool currentMode; // משתנה לשמירת המצב הנוכחי (שרת או לא)
 bool flag=true; // דגל לבדיקת האם יש צורך לבצע הגדרות WiFi
+
+void setup() {
+  pinMode(SETTING_PIN, INPUT_PULLUP); // מגדיר את הפין כקלט עם התנגדות פנימית למשיכה למעלה
+  Serial.begin(9600); // פותח את התקשורת הסדרתית במהירות 9600 bps
+ 
+  BtnAndLedRGB_setup(); // קורא לפונקציה המגדירה את הכפתור ואת נורות ה-LED
+  Serial.println("Game Client setup complete."); // הודעה לסדרה שההגדרות הסתיימו
+}
+void BtnAndLedRGB_setup() {
+  pinMode(PinBlue, OUTPUT);
+  pinMode(PinGreen, OUTPUT);
+  pinMode(PinRed, OUTPUT);
+  pinMode(Btn_R, INPUT_PULLUP);
+  Serial.begin(9600);
+  TurnOffLED(); // מכבה את ה-LED
+  
+}
+void TurnOffLED() {
+  analogWrite(PinRed, 0);
+  analogWrite(PinGreen, 0);
+  analogWrite(PinBlue, 0);
+}
