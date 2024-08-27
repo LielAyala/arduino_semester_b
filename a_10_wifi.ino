@@ -1,73 +1,58 @@
-  #include <ESP8266WiFi.h>
-  #include <WiFiClient.h>
-  #include <WiFiUdp.h>
-  #include <ESP8266HTTPClient.h>
-//נתונים לאן התחבר -------------------------------------------------------------------------------------
-  const char* ssid = "Kinneret College";
-  const char* pswd = "";
-  
-  WiFiClient client;
-  int server_port = 80;//http
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h> 
 
-//מתחבר רק בשלב זה -------------------------------------------------------------------------------------
+IPAddress apIP(55, 55, 55, 55); 
 
- 
-void wifiClient_Setup() {
-      Serial.println("wifiSetup");
-      //WiFi.begin(ssid, pswd);במידה ויש סיסמה
-      WiFi.begin(ssid);
-      //בודק האם באמת התחברנו 
-        while (WiFi.status() != WL_CONNECTED) {
-            Serial.println("trying ...");
-            delay(100);
-        }
-        Serial.println("Connected to network");
+const char* src_ssid = "Table"; //שם הרשת
+ESP8266WebServer server(80); 
+
+
+void WifiSetup(){
+  WiFi.mode(WIFI_AP_STA);
+  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));   // subnet FF FF FF 00   
+  WiFi.softAP(src_ssid); 
+  server.on("/", handleRoot); 
+  server.onNotFound(handleNotFound); 
+  server.begin(); 
+
 }
 
-    //פונה לשרת 
+void WifiServer_loop() {
+  server.handleClient();//.server is defined at this tab
+  delay(10);
+} 
 
-int GetData() {
-      int ret = -1;
-      HTTPClient http;
-      String dataURL = "http://api.kits4.me/GEN/api.php?";
-      dataURL += "ACT=GET&DEV=1121&CH=1";
-      http.begin(client, dataURL);//תשתמש בקליינט HTTP ותשלח לו את ה URL ששלחנו
-      int httpCode = http.GET();
-      Serial.println(httpCode);
-      if (httpCode == HTTP_CODE_OK) {
-          Serial.print("HTTP response code ");
-          Serial.println(httpCode);
-          String Res = http.getString();
-          Serial.println(Res);
-          ret = Res.toInt();
-      }
-      http.end();//סגירת פניה לשרת 
-  
-  
-      return ret;
+
+
+void handleRoot() {
+
+  String html = "<html><head><title>Performance Table</title></head><body>";
+  html += "<center><h1>Your Performance Table</h1>";
+  html += "<table border='1'><tr><th>Index</th><th>Duration</th><th>Is Improve</th></tr>";
+  for (int i = 0; i < recordIndex ; i++) {
+    html += "<tr><td>" + String(i + 1) + "</td><td>" + String(pressRecords[i]) + "</td><td>" + (isRecordNew[i] ? "Yes" : "No") + "</td></tr>";
   }
-  //לשנות לשליחה לשרת משהו אחר 
-  void sendToServerLockDor(){
-    HTTPClient http;
-      String dataURL = "http://api.kits4.me/GEN/api.php?";
-      dataURL += "ACT=GET&DEV=1121&CH=1&VAL=0";
-      http.begin(client, dataURL);//תשתמש בקליינט HTTP ותשלח לו את ה URL ששלחנו
-      http.end();//סגירת פניה לשרת 
-  }
-  
-  void sendToServer(unsigned long duration) {
-  if (WiFi.status() == WL_CONNECTED) {
-    HTTPClient http;
-    http.begin("http://yourserver.com/update");
-    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-    String postData = "duration=" + String(duration);
-    int httpResponseCode = http.POST(postData);
-    if (httpResponseCode > 0) {
-      String response = http.getString();
-      Serial.println(response);
-    } else {
-      Serial.println("Error on sending POST");
-    }
-    http.end();
-  }
+  html += "</table></center></body></html>";
+
+  server.send(200, "text/html", html);
 }
+
+
+
+void handleNotFound(){
+  String message = "File Not Found \n \n";
+  message += "URI: ";
+  message += server.uri();
+  message += "\nMethod: ";
+  message += (server.method() == HTTP_GET) ? "GET" : "POST";
+  message += "\nArguments: ";
+  message += server.args();
+  message += "\n";
+
+  for (uint8_t i = 0; i < server.args(); i++) {
+      message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
+  }
+
+  server.send(404, "text/plain", message);
+}
+
