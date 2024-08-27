@@ -1,16 +1,19 @@
 // פינים
-#define buttonPin D3;
-#define rgbPinR D5;
-#define rgbPinG D6;
-#define rgbPinB D7;
-#define modePin D2;
-
+#define buttonPin D3
+#define rgbPinR D5
+#define rgbPinG D6
+#define rgbPinB D7
+#define modePin D2
 
 // משתנים
 unsigned long buttonPressTime;
 unsigned long shortestPressTime = ULONG_MAX;
 bool buttonPressed = false;
 bool performanceMode = false;
+
+// הצהרה על הפונקציות שמגיעות מהקובץ של ה-WiFi
+void wifiClient_Setup();
+bool sendToServer(unsigned long duration);
 
 void setup() {
   pinMode(buttonPin, INPUT);
@@ -20,10 +23,13 @@ void setup() {
   pinMode(modePin, INPUT);
 
   Serial.begin(115200);
- 
+
+  // חיבור לרשת WiFi
+  wifiClient_Setup();
 }
 
 void loop() {
+  // בדיקה אם פין המוד מחובר לאדמה
   if (digitalRead(modePin) == LOW) {
     performanceMode = true;
     startPerformanceMode();
@@ -31,16 +37,22 @@ void loop() {
     performanceMode = false;
   }
 
+  // קריאה לפונקציה שמודדת את משך הלחיצה
+  Measuring_click_duration();
+}
+
+void Measuring_click_duration() {
+  // בדיקה אם הכפתור לחוץ והמדידה מתחילה
   if (digitalRead(buttonPin) == HIGH && !buttonPressed) {
     buttonPressed = true;
-    buttonPressTime = millis();
-  } else if (digitalRead(buttonPin) == LOW && buttonPressed) {
-    unsigned long pressDuration = millis() - buttonPressTime;
+    buttonPressTime = millis(); // שמירת הזמן שהכפתור התחיל להלחץ
+  } 
+  // בדיקה אם הכפתור שוחרר והמדידה מסתיימת
+  else if (digitalRead(buttonPin) == LOW && buttonPressed) {
+    unsigned long pressDuration = millis() - buttonPressTime; // חישוב משך הלחיצה
     buttonPressed = false;
-    if (pressDuration < shortestPressTime) {
+    if (sendToServer(pressDuration)) {
       shortestPressTime = pressDuration;
-      // שלח לשרת ועדכן
-      sendToServer(pressDuration);
       setRGBColor(64, 224, 208); // תכלת טורקיז
     } else {
       setRGBColor(255, 165, 0); // כתום
@@ -54,8 +66,6 @@ void setRGBColor(int r, int g, int b) {
   analogWrite(rgbPinB, b);
 }
 
-
-//לבנות קוד של הצגת ביצועים 
 void startPerformanceMode() {
   // קוד למצב הצגת ביצועים
 }
