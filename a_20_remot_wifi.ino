@@ -3,15 +3,17 @@
 #include <WiFiUdp.h>
 #include <ESP8266HTTPClient.h>
 
-const char* ssid = "ayala5"; 
-const char* pswd = "0537254180"; 
 
-WiFiClient client; 
-int server_port = 80; 
+const char* ssid = "ayala5";
+const char* pswd = "0537254180";
+
+
+WiFiClient client;
+int server_port = 80;
 // פונקציה לבדיקה וחיבור לרשת ה-WiFi
 void wifiClient_Setup(){  
-  Serial.println("wifiSetup"); 
-  WiFi.begin(ssid,pswd); 
+  Serial.println("wifiSetup");
+  WiFi.begin(ssid,pswd);
     while (WiFi.status() != WL_CONNECTED) {
         Serial.println("trying ...");
         delay(100);
@@ -20,20 +22,22 @@ void wifiClient_Setup(){
 }
 
 
+
+
 int GetData() {
     int ret = -1;
-    HTTPClient http; 
+    HTTPClient http;
     String dataURL = "http://api.kits4.me/GEN/api.php?";
-    dataURL += "ACT=GET&DEV=11&CH=1"; 
-    http.begin(client, dataURL); 
-    int httpCode = http.GET(); 
-    
+    dataURL += "ACT=GET&DEV=11&CH=1";
+    http.begin(client, dataURL);
+    int httpCode = http.GET();
+   
     Serial.print("HTTP code: ");
-    Serial.println(httpCode); 
-    
+    Serial.println(httpCode);
+   
     if (httpCode == HTTP_CODE_OK) {
         Serial.print("HTTP response code: ");
-        Serial.println(httpCode); 
+        Serial.println(httpCode);
         String Res = http.getString(); // קבלת תגובת השרת
         Serial.print("Response from server: ");
         Serial.println(Res); // הדפסת תגובת השרת
@@ -46,6 +50,9 @@ int GetData() {
     http.end(); // סיום הבקשה
     return ret; // החזרת הערך שהתקבל מהשרת
 }
+
+
+
 
 
 
@@ -66,3 +73,12 @@ void SetNewRecordToServer(unsigned long newRecord) {
     }
     http.end(); // סיום הבקשה
 }
+
+
+
+
+
+
+
+
+
